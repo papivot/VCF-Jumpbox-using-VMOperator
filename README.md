@@ -2,6 +2,9 @@
 
 You can leverage this repository to deploy a Tanzu Jumpbox using VMOperator on your Supervisor Cluster (vSphere with Tanzu). This simple implementation exposes the Linux login shell securely over a web browser and can also be accessed by SSH. 
 
+More details on VMOperator and how to use them can be found [here](https://docs.vmware.com/en/VMware-vSphere/7.0/vmware-vsphere-with-tanzu/GUID-F81E3535-C275-4DDE-B35F-CE759EA3B4A0.html)
+
+
 Besides standard Linux troubleshooting and networking tools, some of the additional packages that get deployed in the Tanzu Jumpbox are - 
 
   - docker-ce
