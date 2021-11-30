@@ -22,7 +22,7 @@ The available SHELL options are -
 
 An additional 10 GB disk is mounted on `/data` for additional storage. 
 
-The default user is `ubuntu` which can run `docker` and `sudo` commands. 
+The default user is `ubuntu` which can run `docker` and `sudo` commands. The current shell is `zsh` and use `oh-my-zsh` for a better UX experience. This can be modified as needed. 
 
 ## Deploying the VM
 
