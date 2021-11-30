@@ -65,7 +65,7 @@ Open a browser to https://[[  EXTERNAL-IP ]]. After accepting the security warni
 
 ```
 vmware-tanzu-jumpbox login: ubuntu
-Password: 
+Password: changeme
 You are required to change your password immediately (administrator enforced)
 Changing password for ubuntu.
 Current password: changeme

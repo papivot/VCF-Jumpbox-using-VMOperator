@@ -99,7 +99,7 @@ runcmd:
   - install /tmp/pinniped /usr/local/bin
   - wget -O- https://carvel.dev/install.sh | bash
   - wget https://github.com/vmware-tanzu/velero/releases/download/v1.7.0/velero-v1.7.0-linux-amd64.tar.gz -O /tmp/velero-v1.7.0-linux-amd64.tar.gz
-  - tar -xzvf velero-v1.7.0-linux-amd64.tar.gz -C /tmp
+  - tar -xzvf /tmp/velero-v1.7.0-linux-amd64.tar.gz -C /tmp
   - install /tmp/velero-v1.7.0-linux-amd64/velero /usr/local/bin 
   - wget https://github.com/tsl0922/ttyd/releases/download/1.6.3/ttyd.x86_64 -O /tmp/ttyd
   - install /tmp/ttyd /usr/local/bin
