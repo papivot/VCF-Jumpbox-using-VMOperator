@@ -1,0 +1,69 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jumpbox-pvc
+  namespace: demo1
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: tanzu
+  volumeMode: Filesystem
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: jumpbox-configmap
+    namespace: demo1
+data:
+  hostname: vmware-tanzu-jumpbox
+  password: changeme
+  public-keys: [[ YOUR ssh-rsa.pub ]]
+  user-data: [[ YOUR BASE64 ENCODED CLOUD-INIT.YAML ]]
+---
+apiVersion: vmoperator.vmware.com/v1alpha1
+kind: VirtualMachine
+metadata:
+  labels:
+    vm-selector: vmware-tanzu-jumpbox
+  name: vmware-tanzu-jumpbox
+  namespace: demo1
+spec:
+  imageName: ubuntu-20-1633387172196
+  className: best-effort-xsmall
+  powerState: poweredOn
+  storageClass: tanzu
+  advancedOptions:
+    defaultVolumeProvisioningOptions:
+      thinProvisioned: true
+  volumes:
+  - name: jumpbox-vol
+    persistentVolumeClaim:
+      claimName: jumpbox-pvc
+  networkInterfaces:
+  - networkType: vsphere-distributed
+    networkName: network-1
+  readinessProbe:
+    tcpSocket:
+      port: 22
+  vmMetadata:
+    configMapName: jumpbox-configmap
+    transport: OvfEnv
+---
+apiVersion: vmoperator.vmware.com/v1alpha1
+kind: VirtualMachineService
+metadata:
+  name: jumpbox-vmservices
+  namespace: demo1
+spec:
+  ports:
+  - name: https
+    port: 443
+    protocol: TCP
+    targetPort: 7681
+  selector:
+    vm-selector: vmware-tanzu-jumpbox
+  type: LoadBalancer
