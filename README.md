@@ -1,16 +1,15 @@
-# Tanzu Jumpbox using VMOperator
+# IaaS control plane Jumpbox using VMOperator
 
-You can leverage this repository to deploy a Tanzu Jumpbox using VMOperator on your Supervisor Cluster (vSphere with Tanzu). This simple implementation exposes the Linux login shell securely over a web browser and can also be accessed by SSH. 
+You can leverage this repository to deploy a Jumpbox using VMOperator on your Supervisor Cluster (vSphere with Tanzu). This simple implementation exposes the Linux login shell securely over a web browser and can also be accessed by SSH. 
 
 More details on VMOperator and how to use them can be found [here](https://docs.vmware.com/en/VMware-vSphere/7.0/vmware-vsphere-with-tanzu/GUID-F81E3535-C275-4DDE-B35F-CE759EA3B4A0.html)
 
 
-Besides standard Linux troubleshooting and networking tools, some of the additional packages that get deployed in the Tanzu Jumpbox are - 
+Besides standard Linux troubleshooting and networking tools, some of the additional packages that get deployed in the Jumpbox are - 
 
   - docker-ce
   - kubectl
   - jq
-  - helm
   - pinniped cli
   - carvel tools
   - velero cli
@@ -22,7 +21,7 @@ The available SHELL options are -
 
 An additional 10 GB disk is mounted on `/data` for additional storage. 
 
-The default user is `ubuntu` which can run `docker` and `sudo` commands. The current shell is `zsh` and use `oh-my-zsh` for a better UX experience. This can be modified as needed. 
+The default user is `vmware-system-user` which can run `docker` and `sudo` commands. The current shell is `zsh` and use `oh-my-zsh` for a better UX experience. This can be modified as needed. 
 
 ## Deploying the VM
 
@@ -61,16 +60,6 @@ NAME                 TYPE           CLUSTER-IP    EXTERNAL-IP     PORT(S)       
 jumpbox-vmservices   LoadBalancer   10.96.0.143   192.168.11.28   443:32546/TCP   12m
 ```
 
-Open a browser to https://[[  EXTERNAL-IP ]]. After accepting the security warnings, you will be presented with a login session that will ask you to change the password for the first login. The initial password is `changeme` 
-
-```
-vmware-tanzu-jumpbox login: ubuntu
-Password: changeme
-You are required to change your password immediately (administrator enforced)
-Changing password for ubuntu.
-Current password: changeme
-New password: 
-Retype new password: 
-```
+Open a browser to https://[[  EXTERNAL-IP ]]. After accepting the security warnings, you will be presented with a login session that will ask you to change the password for the first login. The initial password is `Admin!23` 
 
 NOTE - The VM may require a reboot to apply all the security patches that have been installed as part of the cloud-init process. 

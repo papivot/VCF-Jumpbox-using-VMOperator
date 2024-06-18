@@ -33,7 +33,7 @@ write_files:
       After=network.target
 
       [Service]
-      ExecStart=/usr/local/bin/ttyd --ssl --ssl-cert /etc/ttyd/certs/server.crt --ssl-key /etc/ttyd/certs/server.key --ssl-ca /etc/ttyd/certs/ca.crt login
+      ExecStart=/usr/local/bin/ttyd --ssl --ssl-cert /etc/ttyd/certs/server.crt --ssl-key /etc/ttyd/certs/server.key --ssl-ca /etc/ttyd/certs/ca.crt -W login
       Type=simple
       Restart=always
       User=root
@@ -42,24 +42,18 @@ write_files:
       [Install]
       WantedBy=multi-user.target
     owner: 'root:root'
-    permissions: '0644'    
+    permissions: '0644'
   - path: /tmp/san.txt
     content: |
       subjectAltName=DNS:localhost
     owner: 'root:root'
-    permissions: '0644'    
+    permissions: '0644'
 
 apt:
   sources:
     docker.list:
       source: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
       keyid: 9DC858229FC7DD38854AE2D88D81803C0EBFCD88
-    kubernetes.list:
-      source: deb [arch=amd64] https://apt.kubernetes.io/ kubernetes-xenial main
-      keyid: 59FE0256827269DC81578F928B57C5C2836F4BEB
-    helm-stable-debian.list:
-      source: deb [arch=amd64] https://baltocdn.com/helm/stable/debian/ all main
-      keyid: 81BF832E2F19CD2AA0471959294AC4827C1A168A
 
 packages:
   - apt-transport-https
@@ -72,13 +66,11 @@ packages:
   - docker-ce-cli
   - containerd.io
   - net-tools
-  - kubectl
   - inetutils-traceroute
   - zip
   - jq
   - zsh
   - bash-completion
-  - helm
 
 disk_setup:
   /dev/sdb:
@@ -98,18 +90,20 @@ runcmd:
   - curl -ks https://192.168.103.1/wcp/plugin/linux-amd64/vsphere-plugin.zip -o /tmp/vsphere-plugin.zip
   - unzip -qn /tmp/vsphere-plugin.zip -d /tmp
   - install /tmp/bin/kubectl-vsphere /usr/local/bin
-  - runuser -l ubuntu -c 'sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"'
-  - chsh -s $(which zsh) ubuntu 
-  - runuser -l ubuntu -c 'sed -i "s/ZSH_THEME=\"robbyrussell\"/ZSH_THEME=\"agnoster\"/" .zshrc'
+  - wget https://dl.k8s.io/release/v1.30.0/bin/linux/amd64/kubectl -O /tmp/kubectl
+  - install /tmp/kubectl /usr/local/bin
+  - runuser -l vmware-system-user -c 'sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"'
+  - chsh -s $(which zsh) vmware-system-user
+  - runuser -l vmware-system-user -c 'sed -i "s/ZSH_THEME=\"robbyrussell\"/ZSH_THEME=\"agnoster\"/" .zshrc'
   - wget https://github.com/vmware/govmomi/releases/download/v0.37.3/govc_Linux_x86_64.tar.gz -O /tmp/govc_Linux_x86_64.tar.gz
   - tar -xzvf /tmp/govc_Linux_x86_64.tar.gz -C /tmp
-  - install /tmp/govc /usr/local/bin 
+  - install /tmp/govc /usr/local/bin
   - wget https://github.com/vmware-tanzu/pinniped/releases/download/v0.31.0/pinniped-cli-linux-amd64 -O /tmp/pinniped
   - install /tmp/pinniped /usr/local/bin
   - wget -O- https://carvel.dev/install.sh | bash
   - wget https://github.com/vmware-tanzu/velero/releases/download/v1.14.0/velero-v1.14.0-linux-amd64.tar.gz -O /tmp/velero-v1.14.0-linux-amd64.tar.gz
   - tar -xzvf /tmp/velero-v1.14.0-linux-amd64.tar.gz -C /tmp
-  - install /tmp/velero-v1.14.0-linux-amd64/velero /usr/local/bin 
+  - install /tmp/velero-v1.14.0-linux-amd64/velero /usr/local/bin
   - wget https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.x86_64 -O /tmp/ttyd
   - install /tmp/ttyd /usr/local/bin
   - mkdir -p /etc/ttyd/certs

@@ -19,8 +19,7 @@ metadata:
     name: jumpbox-configmap
     namespace: demo1
 data:
-  hostname: vmware-tanzu-jumpbox
-  password: changeme
+  hostname: vmware-jumpbox
   public-keys: [[ YOUR ssh-rsa.pub ]]
   user-data: [[ YOUR BASE64 ENCODED CLOUD-INIT.YAML ]]
 ---
@@ -28,11 +27,11 @@ apiVersion: vmoperator.vmware.com/v1alpha1
 kind: VirtualMachine
 metadata:
   labels:
-    vm-selector: vmware-tanzu-jumpbox
-  name: vmware-tanzu-jumpbox
+    vm-selector: vmware-jumpbox
+  name: vmware-jumpbox
   namespace: demo1
 spec:
-  imageName: ubuntu-20-1633387172196
+  imageName: vmi-e8e36255f6f2a48aa
   className: best-effort-xsmall
   powerState: poweredOn
   storageClass: tanzu
@@ -45,7 +44,7 @@ spec:
       claimName: jumpbox-pvc
   networkInterfaces:
   - networkType: vsphere-distributed
-    networkName: network-1
+    networkName: wkld0
   readinessProbe:
     tcpSocket:
       port: 22
@@ -65,5 +64,5 @@ spec:
     protocol: TCP
     targetPort: 7681
   selector:
-    vm-selector: vmware-tanzu-jumpbox
+    vm-selector: vmware-jumpbox
   type: LoadBalancer
