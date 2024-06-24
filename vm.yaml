@@ -45,12 +45,13 @@ spec:
   networkInterfaces:
   - networkType: vsphere-distributed
     networkName: wkld0
+#  - networkType: nsx-t    
   readinessProbe:
     tcpSocket:
       port: 22
   vmMetadata:
     configMapName: jumpbox-configmap
-    transport: OvfEnv
+    transport: CloudInit
 ---
 apiVersion: vmoperator.vmware.com/v1alpha1
 kind: VirtualMachineService
@@ -63,6 +64,10 @@ spec:
     port: 443
     protocol: TCP
     targetPort: 7681
+#  - name: ssh
+#    port: 22
+#    protocol: TCP
+#    targetPort: 22
   selector:
     vm-selector: vmware-jumpbox
   type: LoadBalancer
