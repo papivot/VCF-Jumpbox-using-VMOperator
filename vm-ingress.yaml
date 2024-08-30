@@ -1,0 +1,116 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jumpbox-pvc
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: tanzu
+  volumeMode: Filesystem
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: jumpbox-configmap
+data:
+  hostname: vmware-jumpbox
+  public-keys: [[ YOUR ssh-rsa.pub ]]
+  user-data: [[ YOUR BASE64 ENCODED CLOUD-INIT.YAML ]]
+---
+apiVersion: vmoperator.vmware.com/v1alpha1
+kind: VirtualMachine
+metadata:
+  labels:
+    vm-selector: vmware-jumpbox
+  name: vmware-jumpbox
+spec:
+  imageName: vmi-e8e36255f6f2a48aa
+  className: best-effort-xsmall
+  powerState: poweredOn
+  storageClass: tanzu
+  advancedOptions:
+    defaultVolumeProvisioningOptions:
+      thinProvisioned: true
+  volumes:
+  - name: jumpbox-vol
+    persistentVolumeClaim:
+      claimName: jumpbox-pvc
+  networkInterfaces:
+  - networkType: vsphere-distributed
+    networkName: wkld0
+#  - networkType: nsx-t    
+  readinessProbe:
+    tcpSocket:
+      port: 22
+  vmMetadata:
+    configMapName: jumpbox-configmap
+    transport: CloudInit
+---
+apiVersion: vmoperator.vmware.com/v1alpha1
+kind: VirtualMachineService
+metadata:
+  name: jumpbox-vmservice
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 7681
+#  - name: ssh
+#    port: 22
+#    protocol: TCP
+#    targetPort: 22
+  selector:
+    vm-selector: vmware-jumpbox
+  type: ClusterIP
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: ca-issuer-selfsigned
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: jumpbox-cert
+spec:
+  commonName: jumpbox.k8s.lab.test
+  dnsNames:
+  - jumpbox.k8s.lab.test
+  issuerRef:
+    name: ca-issuer-selfsigned
+    kind: Issuer
+  secretName: jumpbox-tls
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: contour
+    projectcontour.io/websocket-routes: "/ws"
+    ingress.kubernetes.io/force-ssl-redirect: "true"
+    kubernetes.io/tls-acme: "true"
+  name: jumpbox-ingress
+spec:
+## Comment next 4 lines if not using SSL certs
+  tls:
+  - secretName: jumpbox-tls
+    hosts:
+    - jumpbox.k8s.lab.test
+  rules:
+  - host: jumpbox.k8s.lab.test
+    http:
+      paths:
+      - pathType: Prefix
+        path: /
+        backend:
+          service:
+            name: jumpbox-vmservice
+            port:
+              number: 80
