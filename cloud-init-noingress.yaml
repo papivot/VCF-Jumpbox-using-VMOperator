@@ -33,8 +33,7 @@ write_files:
       After=network.target
 
       [Service]
-      #ExecStart=/usr/local/bin/ttyd --ssl --ssl-cert /etc/ttyd/certs/server.crt --ssl-key /etc/ttyd/certs/server.key --ssl-ca /etc/ttyd/certs/ca.crt -W login
-      ExecStart=/usr/local/bin/ttyd -W login
+      ExecStart=/usr/local/bin/ttyd --ssl --ssl-cert /etc/ttyd/certs/server.crt --ssl-key /etc/ttyd/certs/server.key --ssl-ca /etc/ttyd/certs/ca.crt -W login
       Type=simple
       Restart=always
       User=root
