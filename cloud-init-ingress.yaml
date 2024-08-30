@@ -1,0 +1,105 @@
+#cloud-config
+
+package_update: true
+package_upgrade: true
+
+ssh:
+  emit_keys_to_console: false
+
+no_ssh_fingerprints: true
+
+groups:
+  - docker
+
+system_info:
+  default_user:
+    groups: [docker]
+
+ssh_pwauth: true
+users:
+  - name: vmware-system-user
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    lock_passwd: false
+    # Password set to Admin!23
+    passwd: '$6$8jLYuI5uLgpuEVFc$uFlPBmFOVodfWb59VJHISwJncbCWjyeWdIPaHLHfTZiQokYHfxOBUwwSjlEqALbsNTORvF2QM3YeI6vUCmOif/'
+    shell: /bin/bash
+
+write_files:
+  - path: /etc/systemd/system/ttyd.service
+    content: |
+      [Unit]
+      Description=TTYD
+      After=syslog.target
+      After=network.target
+
+      [Service]
+      ExecStart=/usr/local/bin/ttyd -W login
+      Type=simple
+      Restart=always
+      User=root
+      Group=root
+
+      [Install]
+      WantedBy=multi-user.target
+    owner: 'root:root'
+    permissions: '0644'
+
+apt:
+  sources:
+    docker.list:
+      source: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
+      keyid: 9DC858229FC7DD38854AE2D88D81803C0EBFCD88
+
+packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - gnupg
+  - lsb-release
+  - wget
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - net-tools
+  - inetutils-traceroute
+  - zip
+  - jq
+  - zsh
+  - bash-completion
+
+disk_setup:
+  /dev/sdb:
+    table_type: gpt
+    layout: True
+    overwrite: True
+
+fs_setup:
+  - device: /dev/sdb
+    filesystem: ext4
+    partition: 1
+
+mounts:
+  - [ /dev/sdb1, /data, "auto", "defaults,noexec,nofail" ]
+
+runcmd:
+  - curl -ks https://192.168.103.1/wcp/plugin/linux-amd64/vsphere-plugin.zip -o /tmp/vsphere-plugin.zip
+  - unzip -qn /tmp/vsphere-plugin.zip -d /tmp
+  - install /tmp/bin/kubectl-vsphere /usr/local/bin
+  - wget https://dl.k8s.io/release/v1.30.0/bin/linux/amd64/kubectl -O /tmp/kubectl
+  - install /tmp/kubectl /usr/local/bin
+  - runuser -l vmware-system-user -c 'sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"'
+  - chsh -s $(which zsh) vmware-system-user
+  - runuser -l vmware-system-user -c 'sed -i "s/ZSH_THEME=\"robbyrussell\"/ZSH_THEME=\"agnoster\"/" .zshrc'
+  - wget https://github.com/vmware/govmomi/releases/download/v0.37.3/govc_Linux_x86_64.tar.gz -O /tmp/govc_Linux_x86_64.tar.gz
+  - tar -xzvf /tmp/govc_Linux_x86_64.tar.gz -C /tmp
+  - install /tmp/govc /usr/local/bin
+  - wget https://github.com/vmware-tanzu/pinniped/releases/download/v0.31.0/pinniped-cli-linux-amd64 -O /tmp/pinniped
+  - install /tmp/pinniped /usr/local/bin
+  - wget -O- https://carvel.dev/install.sh | bash
+  - wget https://github.com/vmware-tanzu/velero/releases/download/v1.14.0/velero-v1.14.0-linux-amd64.tar.gz -O /tmp/velero-v1.14.0-linux-amd64.tar.gz
+  - tar -xzvf /tmp/velero-v1.14.0-linux-amd64.tar.gz -C /tmp
+  - install /tmp/velero-v1.14.0-linux-amd64/velero /usr/local/bin
+  - wget https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.x86_64 -O /tmp/ttyd
+  - install /tmp/ttyd /usr/local/bin
+  - mkdir -p /etc/ttyd/certs
+  - systemctl start ttyd && sudo systemctl enable ttyd
